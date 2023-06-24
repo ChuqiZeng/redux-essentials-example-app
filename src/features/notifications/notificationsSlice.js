@@ -6,7 +6,10 @@ const notificationsAdapter = createEntityAdapter({
   sortComparer: (a, b) => b.date.localeCompare(a.date)
 })
 
-const initialState = notificationsAdapter.getInitialState()
+const initialState = notificationsAdapter.getInitialState({
+  status: 'idle', // 'loading', 'succeeded', or 'failed'
+  error: null, // string
+})
 
 export const fetchNotifications = createAsyncThunk(
   'notifications/fetchNotifications',
@@ -32,12 +35,21 @@ const notificationsSlice = createSlice({
       }
   },
   extraReducers(builder) {
-    builder.addCase(fetchNotifications.fulfilled, (state, action) => {
+    builder
+    .addCase(fetchNotifications.pending, (state, action) => {
+      state.status='loading'
+    })
+    .addCase(fetchNotifications.fulfilled, (state, action) => {
       notificationsAdapter.upsertMany(state, action.payload)
       Object.values(state.entities).forEach(notification => {
           // Any notifications we've read are no longer new
           notification.isNew = !notification.read
       })
+      state.status='succeeded'
+    })
+    .addCase(fetchNotifications.rejected, (state, action) => {
+      state.status='failed'
+      state.error = action.error.message
     })
   },
 })
