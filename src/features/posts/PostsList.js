@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 
 import { PostAuthor } from './PostAuthor'
@@ -28,19 +28,31 @@ const PostExcerpt = ({ post }) => {
 
 export const PostsList = () => {
   const {
-    data: posts,
+    // if there is no data and return an undefined
+    // we give posts a default empty array
+    data: posts = [],
     isLoading,
     isSuccess,
     isError,
     error
   } = useGetPostsQuery()
 
+  // useMemo() avoid re-sorting on every re-render
+  // it compares dependencies using Object.is 
+  const sortedPosts = useMemo(() => {
+    // get a copy of posts to sort, so we don't mutate posts
+    const sortedPosts = posts.slice()
+    // Sort posts in descending chronological order
+    sortedPosts.sort((a, b) => b.date.localeCompare(a.date))
+    return sortedPosts
+  }, [posts])
+
   let content
 
   if (isLoading) {
     content = <Spinner text="Loading..." />
   } else if (isSuccess) {
-    content = posts.map((post) => (
+    content = sortedPosts.map((post) => (
       <PostExcerpt key={post.id} post={post} />
     ))
   } else if (isError) {
