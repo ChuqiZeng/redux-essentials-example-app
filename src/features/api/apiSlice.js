@@ -7,12 +7,18 @@ export const apiSlice = createApi({
     reducerPath: 'api',
     // All of our requests will have URLs starting with '/fakeApi'
     baseQuery: fetchBaseQuery({ baseUrl: '/fakeApi' }),
+    // A root tagTypes field, declare an array of string tag names
+    // for data types
+    tagTypes: ['Post'],
     // The "endpoints" represent operations and requests for this server
     endpoints: builder => ({
         // The 'getPosts' endpoint is a "query" operation that returns data
         getPosts: builder.query({
             // The URL for the request is '/fakeApi/posts'
-            query: () => '/posts'
+            query: () => '/posts',
+            // An array that lists a set of tags
+            // describing the data in this query
+            providesTags: ['Post']
         }),
         getPost: builder.query({
             query: postId => `/posts/${postId}`
@@ -23,7 +29,10 @@ export const apiSlice = createApi({
                 method: 'POST',
                 // Include the entire post object as the request body
                 body: initialPost
-            })
+            }),
+            // An array that lists a set of tags that turns invalidate
+            // every time this mutation runs
+            invalidatesTags: ['Post']
         })
     })
 })
