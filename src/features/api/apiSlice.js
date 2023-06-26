@@ -18,10 +18,17 @@ export const apiSlice = createApi({
             query: () => '/posts',
             // An array that lists a set of tags
             // describing the data in this query
-            providesTags: ['Post']
+            providesTags: (result = [], error, arg) => [
+                'Post',
+                ...result.map(({ id }) => ({type: 'Post', id}))
+            ]
         }),
         getPost: builder.query({
-            query: postId => `/posts/${postId}`
+            query: postId => `/posts/${postId}`,
+            providesTags: (result, error, arg) => [{
+                type: 'Post',
+                id: arg
+            }]
         }),
         addNewPost: builder.mutation({
             query: initialPost => ({
@@ -33,6 +40,17 @@ export const apiSlice = createApi({
             // An array that lists a set of tags that turns invalidate
             // every time this mutation runs
             invalidatesTags: ['Post']
+        }),
+        editPost: builder.mutation({
+            query: post => ({
+                url: `/posts/${post.id}`,
+                method: 'PATCH',
+                body: post
+            }),
+            invalidatesTags: (result, error, arg) => [{
+                type: 'Post',
+                id: arg.id
+            }]
         })
     })
 })
@@ -41,5 +59,6 @@ export const apiSlice = createApi({
 export const {
     useGetPostsQuery,
     useGetPostQuery,
-    useAddNewPostMutation
+    useAddNewPostMutation,
+    useEditPostMutation
 } = apiSlice
